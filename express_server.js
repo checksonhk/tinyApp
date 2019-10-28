@@ -18,6 +18,11 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', temp);
 });
 
+app.get('/urls/:shortURL', (req, res) => {
+  let temp = {shortURL: req.params.shortURL, longURL: req.params.longURL};
+  res.render('urls_show', temp);
+});
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
