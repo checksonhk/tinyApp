@@ -11,6 +11,14 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const generateRandomString = function() {
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 6; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+  return result;
+};
+
+
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
@@ -24,15 +32,28 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  // console.log(req.params.shortURL);
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+});
+
 app.get('/urls/:shortURL', (req, res) => {
   let temp = {shortURL: req.params.shortURL, longURL: req.params.longURL};
   res.render('urls_show', temp);
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+  let newShortURL = generateRandomString();
+  urlDatabase[newShortURL] = req.body.longURL;
+  res.redirect(`/urls/${newShortURL}`);
 });
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
