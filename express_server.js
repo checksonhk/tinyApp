@@ -9,13 +9,13 @@ app.set('view engine','ejs');
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "me@me.com",
     password: "123"
   },
@@ -26,6 +26,7 @@ const users = {
   }
 };
 
+// Returns user object if there is matc with the email
 const findUserByEmail = function(email) {
   const usersArr = Object.values(users);
   
@@ -40,6 +41,12 @@ const findUserByEmail = function(email) {
 const doUserPasswordMatch = function(userId , email, password) {
   return (users[userId].email === email && users[userId].password === password) ? true : false;
 };
+
+// Returns Array of the Keys of Url by the specified UserID
+const urlsForUser = function(userId) {
+  return Object.keys(urlDatabase).filter( url => (urlDatabase[url].userID === userId));
+};
+
 
 const generateRandomString = function() {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -64,7 +71,11 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.cookies.userId],
   };
-  res.render("urls_new", templateVars);
+  if (users[req.cookies.userId]) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
