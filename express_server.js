@@ -4,6 +4,7 @@ const PORT = 8080;
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const {getUserByEmail} = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine','ejs');
@@ -32,18 +33,6 @@ const users = {
     email: "user2@example.com", 
     password: "dishwasher-funk"
   }
-};
-
-// Returns user object if there is matc with the email
-const getUserByEmail = function(email, database) {
-  const usersArr = Object.values(database);
-  
-  for (const user of usersArr) {
-    if (user.email === email) {
-      return user;
-    }
-  }
-  return false;
 };
 
 const doUserPasswordMatch = function(userId , email, password) {
