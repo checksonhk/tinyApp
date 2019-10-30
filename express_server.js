@@ -82,7 +82,7 @@ app.get('/login', (req,res) => {
 
 app.post('/login', (req,res) => {
   if (req.body.email.length === 0 || req.body.password.length === 0) {
-    res.sendStatus(400);
+    res.status(403).send("");
   }
   if (findUserByEmail(req.body.email)) {
     const userId = findUserByEmail(req.body.email).id;
@@ -90,10 +90,12 @@ app.post('/login', (req,res) => {
       res.cookie('userId', userId);
       res.redirect('/urls');
     } else {
-      res.sendStatus(403);
+      res.status(403).send("");
+      console.log('hi1');
+      // res.redirect('/login');
     }
   } else {
-    res.sendStatus(403);
+    res.status(403).send("");
   }
 });
 
@@ -112,11 +114,13 @@ app.get('/register' ,(req, res) => {
 app.post('/register', (req,res) => {
   
   if (req.body.email.length === 0 || req.body.password.length === 0) {
-    res.sendStatus(400);
+    res.send(400);
+    res.redirect('/register');
   }
 
   if (findUserByEmail(req.body.email)) {
-    res.sendStatus(400);
+    res.send(400);
+    res.redirect('/resgiter');
   }
   
   let newUserId = generateRandomString();
