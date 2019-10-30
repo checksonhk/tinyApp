@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine','ejs');
@@ -39,7 +40,7 @@ const findUserByEmail = function(email) {
 };
 
 const doUserPasswordMatch = function(userId , email, password) {
-  return (users[userId].email === email && users[userId].password === password) ? true : false;
+  return (users[userId].email === email && bcrypt.compareSync(password, users[userId].password)) ? true : false;
 };
 
 // Returns Array of the Keys of Url by the specified UserID
@@ -82,7 +83,7 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const userUrlDB = urlsForUser(req.cookies.userId);
-  if (userUrlDB.includes(req.params.shortURL)) {
+    if (userUrlDB.includes(req.params.shortURL)) {
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect('/urls');
@@ -139,11 +140,12 @@ app.post('/register', (req,res) => {
   }
   
   let newUserId = generateRandomString();
-
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[newUserId] = {
     id : newUserId,
     email : req.body.email,
-    password : req.body.password,
+    password : hashedPassword,
   };
 
   res.cookie('userId', newUserId);
@@ -170,7 +172,7 @@ app.post('/urls', (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
