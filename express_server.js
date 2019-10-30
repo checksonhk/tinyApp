@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -61,20 +61,20 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const userUrlDB = urlsForUser(req.cookies.userId);
+  const userUrlDB = urlsForUser(req.session.userId);
   let templateVars = {
     urls: urlDatabase,
     userUrl: userUrlDB,
-    user: users[req.cookies.userId],
+    user: users[req.session.userId],
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: users[req.cookies.userId],
+    user: users[req.session.userId],
   };
-  if (users[req.cookies.userId]) {
+  if (users[req.session.userId]) {
     res.render("urls_new", templateVars);
   } else {
     res.redirect('/login');
@@ -82,7 +82,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userUrlDB = urlsForUser(req.cookies.userId);
+  const userUrlDB = urlsForUser(req.session.userId);
     if (userUrlDB.includes(req.params.shortURL)) {
     delete urlDatabase[req.params.shortURL];
   }
@@ -91,7 +91,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.get('/login', (req,res) => {
   let templateVars = {
-    user: users[req.cookies.userId],
+    user: users[req.session.userId],
   };
   res.render("login", templateVars);
 });
@@ -122,7 +122,7 @@ app.post('/logout', (req, res) => {
 
 app.get('/register' ,(req, res) => {
   let templateVars = {
-    user: users[req.cookies.userId],
+    user: users[req.session.userId],
   };
   res.render("register", templateVars);
 });
@@ -153,12 +153,12 @@ app.post('/register', (req,res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.userId]};
+  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId]};
   res.render('urls_show', temp);
 });
 
 app.post('/urls/:id', (req,res) => {
-  const userUrlDB = urlsForUser(req.cookies.userId);
+  const userUrlDB = urlsForUser(req.session.userId);
   if (userUrlDB.includes(req.params.id)) {
     urlDatabase[req.params.id].longURL = req.body.longURL;
   } //  TODO else throw error ... 
