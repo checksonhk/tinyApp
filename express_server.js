@@ -82,9 +82,7 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const userUrlDB = urlsForUser(req.cookies.userId);
-  // console.log(req.params);
   if (userUrlDB.includes(req.params.shortURL)) {
-    console.log('deleting..');
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect('/urls');
