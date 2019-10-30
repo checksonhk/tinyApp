@@ -67,13 +67,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/login', (req,res) => {
+  res.render("login");
+});
+
 app.post('/login', (req,res) => {
+  if (req.body.email.length === 0 || req.body.password.length === 0) {
+    res.sendStatus(400);
+  }
   res.cookie('username', req.body.username);
   res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('userId');
   res.redirect('/urls');
 });
 
