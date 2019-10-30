@@ -2,12 +2,19 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-session');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine','ejs');
-app.use(cookieParser());
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['userId'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -103,11 +110,10 @@ app.post('/login', (req,res) => {
   if (findUserByEmail(req.body.email)) {
     const userId = findUserByEmail(req.body.email).id;
     if (doUserPasswordMatch(userId, req.body.email, req.body.password)) {
-      res.cookie('userId', userId);
+      req.session.userId = userId;
       res.redirect('/urls');
     } else {
       res.status(403).send("");
-      console.log('hi1');
       // res.redirect('/login');
     }
   } else {
@@ -148,7 +154,7 @@ app.post('/register', (req,res) => {
     password : hashedPassword,
   };
 
-  res.cookie('userId', newUserId);
+  req.session.userId = newUserId;
   res.redirect('/urls');
 });
 
