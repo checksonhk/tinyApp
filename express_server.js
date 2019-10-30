@@ -16,8 +16,8 @@ const urlDatabase = {
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    email: "me@me.com",
+    password: "123"
   },
   "user2RandomID": {
     id: "user2RandomID", 
@@ -31,10 +31,14 @@ const findUserByEmail = function(email) {
   
   for (const user of usersArr) {
     if (user.email === email) {
-      return true;
+      return user;
     }
   }
   return false;
+};
+
+const doUserPasswordMatch = function(userId , email, password) {
+  return (users[userId].email === email && users[userId].password === password) ? true : false;
 };
 
 const generateRandomString = function() {
@@ -53,7 +57,6 @@ app.get('/urls', (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies.userId],
   };
-  console.log(users[req.cookies.userId]);
   res.render("urls_index", templateVars);
 });
 
@@ -68,15 +71,27 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get('/login', (req,res) => {
-  res.render("login");
+  let templateVars = {
+    user: users[req.cookies.userId],
+  };
+  res.render("login", templateVars);
 });
 
 app.post('/login', (req,res) => {
   if (req.body.email.length === 0 || req.body.password.length === 0) {
     res.sendStatus(400);
   }
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
+  if (findUserByEmail(req.body.email)) {
+    const userId = findUserByEmail(req.body.email).id;
+    if (doUserPasswordMatch(userId, req.body.email, req.body.password)) {
+      res.cookie('userId', userId);
+      res.redirect('/urls');
+    } else {
+      res.sendStatus(403);
+    }
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.post('/logout', (req, res) => {
@@ -85,7 +100,10 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/register' ,(req, res) => {
-  res.render("register");
+  let templateVars = {
+    user: users[req.cookies.userId],
+  };
+  res.render("register", templateVars);
 });
 
 app.post('/register', (req,res) => {
