@@ -61,7 +61,10 @@ app.get('/urls', (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    user: users[req.cookies.userId],
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {

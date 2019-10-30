@@ -6,18 +6,25 @@
   <% include ./partials/_header %>
 </head>  
 <body>
-  <div>
-    <h1>Create Account</h1>
-  </div>
-  <div>
-    <form method="POST" class="form" action="/register">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input name="email" type="email" class="form-control" placeholder="@email.com">
-        <small id="emailHelp" class="="form-text text-muted">We'll never share your email with anyone else.</small>
-        <input name="password" type="password" class="form-control">
-        <button type='submit' class='btn btn-primary'>Submit </button>
-      </div> 
-    </form>
-  </div>
+  <main style="margin: 1em;">
+    <div>
+      <h1>Create Account</h1>
+    </div>
+    <div>
+      <form method="POST" class="form" action="/register">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input name="email" type="email" class="form-control" placeholder="Enter email">
+          <small id="emailHelp" class="="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input name="password" type="password" placeholder="Enter password" class="form-control">
+        </div>
+        <div class="form-group">
+          <button type='submit' class='btn btn-primary'>Register</button>
+        </div> 
+      </form>
+    </div>
+  </main>
 </body>
