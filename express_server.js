@@ -35,8 +35,8 @@ const users = {
 };
 
 // Returns user object if there is matc with the email
-const findUserByEmail = function(email) {
-  const usersArr = Object.values(users);
+const getUserByEmail = function(email, database) {
+  const usersArr = Object.values(database);
   
   for (const user of usersArr) {
     if (user.email === email) {
@@ -107,8 +107,8 @@ app.post('/login', (req,res) => {
   if (req.body.email.length === 0 || req.body.password.length === 0) {
     res.status(403).send("");
   }
-  if (findUserByEmail(req.body.email)) {
-    const userId = findUserByEmail(req.body.email).id;
+  if (getUserByEmail(req.body.email, users)) {
+    const userId = getUserByEmail(req.body.email, users).id;
     if (doUserPasswordMatch(userId, req.body.email, req.body.password)) {
       req.session.userId = userId;
       res.redirect('/urls');
@@ -122,7 +122,7 @@ app.post('/login', (req,res) => {
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('userId');
+  req.session = null;
   res.redirect('/urls');
 });
 
@@ -140,7 +140,7 @@ app.post('/register', (req,res) => {
     res.redirect('/register');
   }
 
-  if (findUserByEmail(req.body.email)) {
+  if (getUserByEmail(req.body.email, users)) {
     res.send(400);
     res.redirect('/resgiter');
   }
