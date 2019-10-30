@@ -132,7 +132,7 @@ app.post('/register', (req,res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies.userId]};
   res.render('urls_show', temp);
 });
 
