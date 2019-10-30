@@ -60,8 +60,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+  const userUrlDB = urlsForUser(req.cookies.userId);
   let templateVars = {
     urls: urlDatabase,
+    userUrl: userUrlDB,
     user: users[req.cookies.userId],
   };
   res.render("urls_index", templateVars);
@@ -79,8 +81,10 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // console.log(req.params.shortURL);
-  delete urlDatabase[req.params.shortURL];
+  const userUrlDB = urlsForUser(req.cookies.userId);
+  if (userUrlDB.includes(req.params.id)) {
+    delete urlDatabase[req.params.shortURL];
+  }
   res.redirect('/urls');
 });
 
@@ -147,16 +151,17 @@ app.post('/register', (req,res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies.userId]};
+  let temp = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.userId]};
   res.render('urls_show', temp);
 });
 
 app.post('/urls/:id', (req,res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
-  // console.log('shortURL:', req.params);
+  const userUrlDB = urlsForUser(req.cookies.userId);
+  if (userUrlDB.includes(req.params.id)) {
+    urlDatabase[req.params.id].longURL = req.body.longURL;
+  } //  TODO else throw error ... 
   res.redirect('/urls');
 });
-
 
 app.post('/urls', (req, res) => {
   let newShortURL = generateRandomString();
@@ -170,9 +175,9 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
