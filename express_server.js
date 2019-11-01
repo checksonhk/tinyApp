@@ -25,8 +25,8 @@ app.use(cookieSession({
 }));
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW", visits: 3 },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW", visits: 5 }
 };
 
 const users = {
@@ -42,6 +42,15 @@ const users = {
   }
 };
 
+const generateRandomVisitorId = function() {
+  const chars = '0123456789';
+  let result = '';
+  for (let i = 6; i > 0; -- i) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+};
+
 app.get('/', (req, res) => {
   res.redirect('/urls');
 });
@@ -53,6 +62,7 @@ app.get('/urls', (req, res) => {
     userUrl: userUrlDB,
     user: users[req.session.userId],
   };
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -164,7 +174,7 @@ app.get('/urls/:shortURL', (req, res) => {
     res.redirect('/urls');
   } else {
 
-    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId]};
+    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId], visits: urlDatabase[req.params.shortURL].visits};
     
     const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
     
@@ -196,6 +206,7 @@ app.put('/urls', (req, res) => {
   urlDatabase[newShortURL] = {};
   urlDatabase[newShortURL].userID = req.session.userId;
   urlDatabase[newShortURL].longURL = req.body.longURL;
+  urlDatabase[newShortURL].visits = 0;
   
   res.redirect(`/urls/${newShortURL}`);
 });
@@ -208,6 +219,8 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect('/urls');
   } else {
     const longURL = urlDatabase[req.params.shortURL].longURL;
+    // Adds Visitor Count;
+    urlDatabase[req.params.shortURL].visits += 1;
     res.redirect(longURL);
   }
 
