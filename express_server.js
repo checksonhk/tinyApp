@@ -219,12 +219,6 @@ app.get("/u/:shortURL", (req, res) => {
 //   res.render('login', templateVars);
 // });
 
-// app.use((err, req, res, next) => {
-//   const user = isLoggedIn(req);
-//   const templateVars = { urls: getOwnUrls(user.id, true), user, error: err };
-//   res.status(400);
-//   res.render('urls_index', templateVars);
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
