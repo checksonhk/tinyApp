@@ -55,6 +55,7 @@ app.get('/urls', (req, res) => {
     urls: urlDatabase,
     userUrl: userUrlDB,
     user: users[req.session.userId],
+    error: null
   };
   res.render("urls_index", templateVars);
 });
@@ -62,6 +63,7 @@ app.get('/urls', (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.session.userId],
+    error: null,
   };
   if (isLoggedIn(users, req)) {
     res.render("urls_new", templateVars);
@@ -87,6 +89,7 @@ app.get('/login', (req,res) => {
     // Updates Session
     let templateVars = {
       user: users[req.session.userId],
+      error: null,
     };
     res.render("login", templateVars);
   }
@@ -106,10 +109,10 @@ app.post('/login', (req,res) => {
       req.session.userId = userId;
       res.redirect('/urls');
     } else {
-      res.status(403).send("");
+      throw Error("User and Password don't match our records...Try again");
     }
   } else {
-    res.status(403).send("");
+    throw Error("Cannot find user in the database..Try again");
   }
 
 });
@@ -128,6 +131,7 @@ app.get('/register' ,(req, res) => {
   } else {
     let templateVars = {
       user: users[req.session.userId],
+      error: null,
     };
     res.render("register", templateVars);
   }
@@ -141,11 +145,11 @@ app.post('/register', (req,res) => {
   }
 
   if (containsEmtpyFields(req)) {
-    res.status(400).send("");
+    throw Error("Email and/or Password cannot be blank!");
   }
 
   if (getUserByEmail(users, req.body.email)) {
-    res.status(403).send("");
+    throw Error("Cannot find user in Database... Try again");
   }
   
   let newUserId = generateRandomString();
@@ -170,7 +174,7 @@ app.get('/urls/:shortURL', (req, res) => {
     res.redirect('/urls');
   } else {
 
-    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId], visits: urlDatabase[req.params.shortURL].visits, uniqueVisits: urlDatabase[req.params.shortURL].uniqueVisits};
+    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId], visits: urlDatabase[req.params.shortURL].visits, uniqueVisits: urlDatabase[req.params.shortURL].uniqueVisits, error: null};
 
     const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
     

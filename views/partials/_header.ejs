@@ -26,3 +26,6 @@
     </div>
   </nav>
 </header>
+<% if (error) { %>
+ <div class="border border-danger rounded test-danger bg-light mx-2 my-3 p-2"><%= error.message %></div>
+<% } %>
