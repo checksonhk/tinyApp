@@ -44,7 +44,21 @@ const encryptPassword = function(password) {
 };
 
 const isUrlInDB = function(database, req) {
-  return Object.prototype.hasOwnProperty.call(database, req.params.shortURL);
+  return Object.prototype.hasOwnProperty.call(database, req.params.shortURL) || database.includes(req.params.shortURL);
+};
+
+const addUrl = function(database, url, req) {
+  // database Function - newURL
+  database[url] = {};
+  database[url].userID = req.session.userId;
+  database[url].longURL = req.body.longURL;
+  database[url].dateCreated = new Date();
+  database[url].visits = 0;
+  database[url].uniqueVisits = [];
+};
+
+const logVisit = function(database, req, visitorId) {
+  database[req.params.shortURL].uniqueVisits.push({'visitorId': visitorId, 'timeStamp': new Date()});
 };
 
 module.exports = {
@@ -55,5 +69,7 @@ module.exports = {
   isLoggedIn,
   containsEmtpyFields,
   encryptPassword,
-  isUrlInDB
+  isUrlInDB,
+  addUrl,
+  logVisit
 };

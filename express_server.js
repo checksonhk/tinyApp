@@ -11,7 +11,9 @@ const {getUserByEmail,
   isLoggedIn,
   containsEmtpyFields,
   encryptPassword,
-  isUrlInDB} = require('./helpers');
+  isUrlInDB,
+  addUrl,
+  logVisit} = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine','ejs');
@@ -25,8 +27,8 @@ app.use(cookieSession({
 }));
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW", visits: 3 },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW", visits: 5 }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW", dateCreated: "", visits: 3, uniqueVisits : [{visitorId: 123832, timeStamp: ""}]},
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW", dateCreated: "", visits: 5, uniqueVisits : [] }
 };
 
 const users = {
@@ -42,14 +44,6 @@ const users = {
   }
 };
 
-const generateRandomVisitorId = function() {
-  const chars = '0123456789';
-  let result = '';
-  for (let i = 6; i > 0; -- i) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
-};
 
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -62,7 +56,6 @@ app.get('/urls', (req, res) => {
     userUrl: userUrlDB,
     user: users[req.session.userId],
   };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -80,7 +73,7 @@ app.get("/urls/new", (req, res) => {
 app.delete("/urls/:shortURL/delete", (req, res) => {
   const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
   
-  if (userUrlDB.includes(req.params.shortURL)) {
+  if (isUrlInDB(userUrlDB, req)) {
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect('/urls');
@@ -91,6 +84,7 @@ app.get('/login', (req,res) => {
   if (isLoggedIn(users, req)) {
     res.redirect('/urls');
   } else {
+    // Updates Session
     let templateVars = {
       user: users[req.session.userId],
     };
@@ -102,7 +96,7 @@ app.get('/login', (req,res) => {
 app.post('/login', (req,res) => {
 
   if (containsEmtpyFields(req)) {
-    res.status(403).send("");
+    throw Error("Email and/or Password cannot be blank!");
   }
   if (getUserByEmail(users, req.body.email)) {
 
@@ -121,6 +115,8 @@ app.post('/login', (req,res) => {
 });
 
 app.post('/logout', (req, res) => {
+  
+  // Deletes Session
   req.session = null;
   res.redirect('/urls');
 });
@@ -174,8 +170,8 @@ app.get('/urls/:shortURL', (req, res) => {
     res.redirect('/urls');
   } else {
 
-    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId], visits: urlDatabase[req.params.shortURL].visits};
-    
+    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.userId], visits: urlDatabase[req.params.shortURL].visits, uniqueVisits: urlDatabase[req.params.shortURL].uniqueVisits};
+
     const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
     
     if (isLoggedIn(users, req) && userUrlDB.includes(req.params.shortURL)) {
@@ -185,17 +181,16 @@ app.get('/urls/:shortURL', (req, res) => {
       res.redirect('/urls');
     }
   }
-
 });
 
 app.put('/urls/:id', (req,res) => {
   const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
   
   // .includes should be part of database function
-  if (userUrlDB.includes(req.params.id)) {
+  if (isUrlInDB(userUrlDB, req)) {
+    // Update Url
     urlDatabase[req.params.id].longURL = req.body.longURL;
-  } //  TODO else throw error ... 
-  
+  } //  TODO else throw error ...
   res.redirect('/urls');
 });
 
@@ -203,10 +198,7 @@ app.put('/urls', (req, res) => {
   let newShortURL = generateRandomString();
   
   // database Function - newURL
-  urlDatabase[newShortURL] = {};
-  urlDatabase[newShortURL].userID = req.session.userId;
-  urlDatabase[newShortURL].longURL = req.body.longURL;
-  urlDatabase[newShortURL].visits = 0;
+  addUrl(urlDatabase, newShortURL, req)
   
   res.redirect(`/urls/${newShortURL}`);
 });
@@ -219,6 +211,15 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect('/urls');
   } else {
     const longURL = urlDatabase[req.params.shortURL].longURL;
+    let visitorId;
+
+    // Check if user has userId
+    if (isLoggedIn(users, req)) {
+      visitorId = req.session.userId;
+    } else {
+      visitorId = generateRandomString();
+    }
+    logVisit(urlDatabase, req, visitorId);
     // Adds Visitor Count;
     urlDatabase[req.params.shortURL].visits += 1;
     res.redirect(longURL);
@@ -226,12 +227,31 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 
-// app.use('/:credType(register|login)', function(err, req, res, next) {
-//   const templateVars = { urls: [], user: null, newUser: req.params.credType === 'register', error: err };
-//   res.status(403);
-//   res.render('login', templateVars);
-// });
+// Handles Login/Register Errors
+app.use('/:credType(register|login)', function(err, req, res, next) {
+  const templateVars = {
+    user: users[req.session.userId],
+    error: err,
+  };
+  res.status(403);
+  res.render('login', templateVars);
+});
 
+// Handles other Errors
+app.use((err, req, res, next) => {
+  const user = isLoggedIn(users,req);
+  
+  const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
+  const templateVars = {
+    urls: urlDatabase,
+    userUrl: userUrlDB,
+    user: users[req.session.userId],
+    error: err
+  };
+
+  res.status(400);
+  res.render('urls_index', templateVars);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
