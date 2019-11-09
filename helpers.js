@@ -44,7 +44,7 @@ const encryptPassword = function(password) {
 };
 
 const isUrlInDB = function(database, req) {
-  return Object.prototype.hasOwnProperty.call(database, req.params.shortURL) || database.includes(req.params.shortURL);
+  return Object.prototype.hasOwnProperty.call(database, req.params.shortURL);
 };
 
 const addUrl = function(database, url, req) {
