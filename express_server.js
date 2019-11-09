@@ -50,6 +50,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+  if (!isLoggedIn(users, req)) {
+    res.redirect('/login')
+  }
   const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
   let templateVars = {
     urls: urlDatabase,
@@ -189,9 +192,13 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.put('/urls/:id', (req,res) => {
   const userUrlDB = urlsForUser(urlDatabase, req.session.userId);
-  
+  console.log(userUrlDB);
+  console.log(req.body.longURL);
+  console.log(req.params);
+  console.log(isUrlInDB(userUrlDB, req));
   // .includes should be part of database function
-  if (isUrlInDB(userUrlDB, req)) {
+  if (userUrlDB.includes(req.params.id)) {
+    console.log('here');
     // Update Url
     urlDatabase[req.params.id].longURL = req.body.longURL;
   } //  TODO else throw error ...
@@ -202,7 +209,7 @@ app.put('/urls', (req, res) => {
   let newShortURL = generateRandomString();
   
   // database Function - newURL
-  addUrl(urlDatabase, newShortURL, req)
+  addUrl(urlDatabase, newShortURL, req);
   
   res.redirect(`/urls/${newShortURL}`);
 });
